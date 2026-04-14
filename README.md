@@ -24,6 +24,7 @@ server/
     models/
     routes/
     utils/
+vercel.json
 ```
 
 ## Core Features
@@ -79,6 +80,12 @@ VITE_API_URL=http://localhost:5000/api
 
 - `VITE_API_URL`: full backend API base URL used by the frontend
 
+For Vercel, set:
+
+```env
+VITE_API_URL=/api
+```
+
 ### Server
 
 File: `server/.env`
@@ -93,7 +100,7 @@ JWT_EXPIRES_IN=7d
 ```
 
 - `NODE_ENV`: app environment, usually `development` or `production`
-- `PORT`: backend port
+- `PORT`: backend port for local development
 - `CLIENT_URLS`: comma-separated allowed frontend origins for CORS
 - `MONGO_URI`: MongoDB connection string
 - `JWT_SECRET`: secret used to sign JWT tokens
@@ -133,7 +140,7 @@ npm run start
 2. Create a database user with username and password.
 3. In Atlas Network Access, allow your deployment platform or current IP.
 4. Copy the connection string from Atlas.
-5. Put it in `server/.env` as `MONGO_URI`.
+5. Put it in your environment variables as `MONGO_URI`.
 6. Replace `<password>` and any database name placeholders.
 
 Example:
@@ -142,54 +149,40 @@ Example:
 MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/task-manager-app?retryWrites=true&w=majority
 ```
 
-## Deployment
+## Vercel Deployment
 
-### Frontend on Vercel
+This project is configured to deploy on Vercel as:
 
-1. Import the `client` folder as a project.
-2. Framework preset: `Vite`.
-3. Build command: `npm run build`.
-4. Output directory: `dist`.
-5. Set `VITE_API_URL` to your deployed backend API URL.
+- static Vite frontend from `client`
+- serverless Node function from `server/src/index.js`
 
-### Frontend on Netlify
+### Required Vercel Environment Variables
 
-1. Import the repository.
-2. Base directory: `client`.
-3. Build command: `npm run build`.
-4. Publish directory: `client/dist` or `dist` depending on platform settings.
-5. Add `VITE_API_URL` in environment variables.
+- `NODE_ENV=production`
+- `MONGO_URI=<your-mongodb-atlas-uri>`
+- `JWT_SECRET=<strong-secret>`
+- `JWT_EXPIRES_IN=7d`
+- `CLIENT_URLS=https://your-project.vercel.app`
+- `VITE_API_URL=/api`
 
-### Backend on Render
+If you use a custom domain, include it in `CLIENT_URLS`.
 
-1. Create a new Web Service from the repository.
-2. Root directory: `server`.
-3. Build command: `npm install`.
-4. Start command: `npm run start`.
-5. Add environment variables:
-   `NODE_ENV=production`
-   `PORT=10000` if needed by platform
-   `CLIENT_URLS=<your-frontend-url>`
-   `MONGO_URI=<your-atlas-uri>`
-   `JWT_SECRET=<strong-secret>`
-   `JWT_EXPIRES_IN=7d`
+If you need both domains:
 
-### Backend on Railway
+```env
+CLIENT_URLS=https://your-project.vercel.app,https://app.yourdomain.com
+```
 
-1. Create a new project from the repository.
-2. Set service root to `server`.
-3. Add the same environment variables as Render.
-4. Use `npm install` and `npm run start`.
+### Deploy Steps
 
-## Full Run Flow
-
-1. Start MongoDB locally or configure Atlas.
-2. Start the backend.
-3. Start the frontend.
-4. Register a user.
-5. Log in.
-6. Create, update, search, filter, and delete tasks.
-7. Restart the backend and verify users/tasks still exist.
+1. Push the project to GitHub.
+2. Import the repository into Vercel.
+3. Keep the root directory as the repository root.
+4. Let Vercel read `vercel.json`.
+5. Add all required environment variables in the Vercel dashboard.
+6. Deploy.
+7. After deployment, open `/api/health` and confirm the API responds.
+8. Open the frontend and test register, login, and task CRUD.
 
 ## API Summary
 
@@ -211,27 +204,26 @@ MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/task-manager-app?r
 
 Add client-facing screenshots here before delivery:
 
-- `screenshots/login-page.png`
-- `screenshots/register-page.png`
-- `screenshots/dashboard-empty-state.png`
-- `screenshots/dashboard-task-list.png`
+- `screenshots/Login Dashboard.PNG`
+- `screenshots/Register Dashboard.PNG`
+- `screenshots/Task Dashboard.PNG`
+- `screenshots/MongoDB.PNG`
 
 Suggested README section update later:
 
 ```text
-![Login Page](screenshots/login-page.png)
-![Register Page](screenshots/register-page.png)
-![Dashboard Empty State](screenshots/dashboard-empty-state.png)
-![Dashboard Tasks](screenshots/dashboard-task-list.png)
+![Login Page](screenshots/Login Dashboard.PNG)
+![Register Page](screenshots/Register Dashboard.PNG)
+![Task Dashboard](screenshots/Task Dashboard.PNG)
+![MongoDB](screenshots/MongoDB.PNG)
 ```
 
 ## Delivery Notes
 
-- no backend in-memory storage remains
-- frontend API flow remains compatible with current routes
-- deployment env vars are documented for local and hosted environments
-- production-oriented config is separated from route logic
+- local development still uses `client/npm run dev` and `server/npm run dev`
+- Vercel uses the same API routes under `/api/*`
+- auth flow, task APIs, and MongoDB integration are unchanged
 
 ## Important Note
 
-I did not run `npm install`, `npm run build`, `npm run dev`, or any live deployment checks in this environment.
+I did not run `vercel`, `npm run build`, or live deployment checks in this environment.
