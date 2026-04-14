@@ -151,38 +151,93 @@ MONGO_URI=mongodb+srv://username:password@cluster.mongodb.net/task-manager-app?r
 
 ## Vercel Deployment
 
-This project is configured to deploy on Vercel as:
+Deploy this repository as two separate Vercel projects:
 
-- static Vite frontend from `client`
-- serverless Node function from `server/src/index.js`
+- `client` as the frontend project
+- `server` as the backend project
 
-### Required Vercel Environment Variables
+This avoids mixed frontend/backend routing problems in a single Vercel deployment.
 
-- `NODE_ENV=production`
-- `MONGO_URI=<your-mongodb-atlas-uri>`
-- `JWT_SECRET=<strong-secret>`
-- `JWT_EXPIRES_IN=7d`
-- `CLIENT_URLS=https://your-project.vercel.app`
-- `VITE_API_URL=/api`
+### 1. Backend Project On Vercel
 
-If you use a custom domain, include it in `CLIENT_URLS`.
+Create a Vercel project with:
 
-If you need both domains:
+- Root Directory: `server`
+- Framework Preset: `Other`
+
+The backend project uses:
+
+- `server/api/[...path].mjs` as the Vercel function entry
+- `server/src/index.js` as the existing Express app handler
+
+#### Backend Environment Variables
 
 ```env
-CLIENT_URLS=https://your-project.vercel.app,https://app.yourdomain.com
+NODE_ENV=production
+MONGO_URI=<your-mongodb-atlas-uri>
+JWT_SECRET=<strong-secret>
+JWT_EXPIRES_IN=7d
+CLIENT_URLS=https://your-frontend-project.vercel.app
 ```
 
-### Deploy Steps
+After deployment, test:
 
-1. Push the project to GitHub.
-2. Import the repository into Vercel.
-3. Keep the root directory as the repository root.
-4. Let Vercel read `vercel.json`.
-5. Add all required environment variables in the Vercel dashboard.
-6. Deploy.
-7. After deployment, open `/api/health` and confirm the API responds.
-8. Open the frontend and test register, login, and task CRUD.
+```text
+https://your-backend-project.vercel.app/api/health
+```
+
+### 2. Frontend Project On Vercel
+
+Create another Vercel project with:
+
+- Root Directory: `client`
+- Framework Preset: `Vite`
+
+The frontend project uses:
+
+- `client/vercel.json` for React Router SPA rewrites
+
+#### Frontend Environment Variables
+
+```env
+VITE_API_URL=https://your-backend-project.vercel.app/api
+```
+
+### 3. Deployment Order
+
+1. Deploy the backend project from `server`.
+2. Copy the backend Vercel URL.
+3. Deploy the frontend project from `client`.
+4. Set `VITE_API_URL` in the frontend project to the backend URL plus `/api`.
+5. Add the frontend deployed URL to backend `CLIENT_URLS`.
+6. Redeploy the backend if you updated `CLIENT_URLS`.
+7. Test register, login, and task CRUD from the frontend app.
+
+### Example
+
+If your backend URL is:
+
+```text
+https://task-manager-api.vercel.app
+```
+
+Then set:
+
+```env
+VITE_API_URL=https://task-manager-api.vercel.app/api
+```
+
+If your frontend URL is:
+
+```text
+https://task-manager-client.vercel.app
+```
+
+Then set backend:
+
+```env
+CLIENT_URLS=https://task-manager-client.vercel.app
+```
 
 ## API Summary
 
