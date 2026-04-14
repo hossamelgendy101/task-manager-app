@@ -70,5 +70,10 @@ if (!process.env.VERCEL) {
 
 export default async function handler(req, res) {
   await connectToDatabase();
+
+  if (process.env.VERCEL && req.url && !req.url.startsWith('/api')) {
+    req.url = `/api${req.url}`;
+  }
+
   return app(req, res);
 }
